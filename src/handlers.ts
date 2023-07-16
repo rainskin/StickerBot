@@ -33,6 +33,6 @@ O.title.handler = async (ctx) => {
   } catch (e) {
     ctx.session.state = undefined
     await ctx.reply(COPY_ERROR_TEXT)
-    throw e
+    console.log(e)
   }
 }
