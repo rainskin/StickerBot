@@ -1,0 +1,2 @@
+TODO:
+ - pass big stickers
