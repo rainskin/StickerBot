@@ -10,6 +10,7 @@ import * as O from "./observers.ts"
 O.start.handler = async (ctx) => {
   ctx.session.state = undefined
   await ctx.reply(ASK_STICKER_TEXT)
+  console.log('we are starting')
 }
 
 O.sticker.handler = async (ctx) => {

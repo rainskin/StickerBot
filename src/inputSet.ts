@@ -8,33 +8,41 @@ function Hash() {
 }
 
 export class InputSet {
-  name: string
-  link: string
-  title: string
-  type: "animated" | "video" | "static"
-  private stickers: Sticker[]
-  stickerIndex = 0
+  name: string;
+  link: string;
+  title: string;
+  type: "animated" | "video" | "static";
+  private stickers: Sticker[];
+  stickerIndex = 0;
 
-  constructor(title: string, set: StickerSet, private userId: number) {
-    this.name = `${transliterate(title)}_${Hash()}_by_${bot.botInfo.username}`
-    this.title = title + " @anime4_arts"
-    this.link = "https://t.me/addstickers/" + this.name
-    this.type = set.is_animated ? "animated" : set.is_video ? "video" : "static"
-    this.stickers = set.stickers
+  constructor(set_title: string, title: string, set: StickerSet, private userId: number) {
+    this.name = `${transliterate(title)}_${Hash()}_by_${bot.botInfo.username}`;
+    this.title = title + " @anime4_arts";
+    this.link = "https://t.me/addstickers/" + this.name;
+    this.type = set.is_animated ? "animated" : set.is_video ? "video" : "static";
+
+    // Проверка на "chpic.su" в названии и обновление списка стикеров
+    if (set_title.includes("chpic.su")) {
+      this.stickers = set.stickers.slice(0, -4);
+      console.log("Filtered Stickers (chpic.su):", this.stickers.length);
+    } else {
+      this.stickers = set.stickers;
+      console.log("Original Stickers:", this.stickers.length);
+    }
   }
 
   get stickersTotal() {
-    return this.stickers.length
+    return this.stickers.length;
   }
 
   async getInitialStickers(): Promise<InputSticker[]> {
     if (this.type == "static") {
-      const stickers = this.stickers.slice(0, MAX_INITIAL_STICKERS)
-      this.stickerIndex = stickers.length
-      return stickers.map(makeStaticInputSticker)
+      const stickers = this.stickers.slice(0, MAX_INITIAL_STICKERS);
+      this.stickerIndex = stickers.length;
+      return stickers.map(makeStaticInputSticker);
     }
-    this.stickerIndex = 1
-    return [await makeInputSticker(this.stickers[0])]
+    this.stickerIndex = 1;
+    return [await makeInputSticker(this.stickers[0])];
   }
 
   async createInitialSet() {
@@ -44,28 +52,31 @@ export class InputSet {
       this.title,
       await this.getInitialStickers(),
       this.type,
-    )
+    );
   }
 
   async addNextSticker() {
-    const s = this.stickers[this.stickerIndex]
-    this.stickerIndex += 1
-    let inputSticker
-    if (this.type == "static") inputSticker = makeStaticInputSticker(s)
-    else inputSticker = await makeInputSticker(s)
-    await bot.api.addStickerToSet(this.userId, this.name, inputSticker)
+    if (this.stickerIndex < this.stickers.length) {
+      const s = this.stickers[this.stickerIndex];
+      this.stickerIndex += 1;
+      let inputSticker;
+      console.log('aaa')
+      if (this.type == "static") inputSticker = makeStaticInputSticker(s);
+      else inputSticker = await makeInputSticker(s);
+      await bot.api.addStickerToSet(this.userId, this.name, inputSticker);
+    }
   }
 }
 
 async function makeInputSticker(s: Sticker): Promise<InputSticker> {
-  const f = await bot.api.getFile(s.file_id)
-  const url = `https://api.telegram.org/file/bot${bot.token}/${f.file_path}`
-  const inputFile = new InputFile({ url })
-  return { sticker: inputFile, emoji_list: [s.emoji!] }
+  const f = await bot.api.getFile(s.file_id);
+  const url = `https://api.telegram.org/file/bot${bot.token}/${f.file_path}`;
+  const inputFile = new InputFile({ url });
+  return { sticker: inputFile, emoji_list: [s.emoji!] };
 }
 
 function makeStaticInputSticker(s: Sticker) {
-  return { sticker: s.file_id, emoji_list: [s.emoji!] }
+  return { sticker: s.file_id, emoji_list: [s.emoji!] };
 }
 
 const transliterationMap: Record<string, string> = {
@@ -107,6 +118,6 @@ const transliterationMap: Record<string, string> = {
 function transliterate(text: string) {
   const letters = text.toLowerCase().split("").map((char) =>
     transliterationMap[char] || char
-  )
-  return letters.join("").replace(/\W/g, "")
+  );
+  return letters.join("").replace(/\W/g, "");
 }

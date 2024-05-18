@@ -22,7 +22,9 @@ export async function copyStickerSet(
   setName: string,
 ) {
   const set = await ctx.api.getStickerSet(setName)
-  const inputSet = new InputSet(title, set, ctx.from!.id)
+  const set_title = set.title
+  console.log('имя пака', set_title)
+  const inputSet = new InputSet(set_title, title, set, ctx.from!.id)
   await inputSet.createInitialSet()
   await ctx.reply(inputSet.link)
   const msg = await ctx.reply(ProgressText(inputSet))
