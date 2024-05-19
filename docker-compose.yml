@@ -4,4 +4,4 @@ services:
     restart: always
     environment:
       TZ: "Europe/Moscow"
-    env_file: stack.env
+    env_file: .env
